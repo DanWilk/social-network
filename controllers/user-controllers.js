@@ -1,4 +1,5 @@
 const { User } = require('../models');
+const { findOneAndUpdate } = require('../models/Thoughts');
 
 const userController = {
     // get all users
@@ -22,6 +23,10 @@ const userController = {
         .populate({
             path: 'comments',
             select: '-__v'
+        })
+        .populate({
+            path: 'friends',
+            select: 'username'
         })
         .select('-__v')
         .then(dbUserData => {
@@ -73,7 +78,39 @@ const userController = {
         .catch(err => {
             res.status(404).json(err)
         });
-    } 
+    },
+
+    //create friends
+    addFriend ({ params }, res) {
+        findOneAndUpdate(
+            {_id: params.userId},
+            { $push: { friends:  params.friendId} },
+            { new: true, runvalidators: true }
+        )
+        .then(dbUserData => {
+            if(!dbUserData) {
+                return res.status(404).json({ message: 'No User found with this id!'});
+            }
+            res.json(dbUserData);
+        })
+        .catch(err => res.status(400).json(err));
+    },
+
+    //delete friend
+    removeFriend({ params }, res) {
+        User.findOneAndUpdate(
+            { _id: params.userId },
+            { $pull: {friends: {_id: params.friendId} } },
+            { new: true }
+        )
+        .then(dbUserData => {
+            if(!dbUserData) {
+                return res.status(404).json({ message: 'No user found with this id!'});
+            }
+            res.json(dbUserData);
+        })
+        .catch(err => res.status(400).json(err));
+    }
 };
 
 module.exports = userController;
