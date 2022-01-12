@@ -17,7 +17,7 @@ const thoughtController = {
     },
     
     //get a single thought by id
-    getThoughtbyId({ params }, res) {
+    getThoughtById({ params }, res) {
         Thoughts.findOne({_id: params.thoughtId})
         .populate({
             path: 'reactions',
@@ -38,7 +38,7 @@ const thoughtController = {
         Thoughts.create(body)
         .then(({ _id }) => {
             return User.findOneAndUpdate( 
-                { _id: params.Userid}, 
+                { _id: params.userId}, 
                 { $push: {thoughts: _id} },
                 { new: true }
                 );
@@ -56,7 +56,7 @@ const thoughtController = {
     },
 
     // update a thought
-    updateThought({ params }, res) {
+    updateThought({ params, body }, res) {
         Thoughts.findOneAndUpdate(
             {_id: params.thoughtId}, body, {new: true, runValidators: true}
         )
@@ -98,13 +98,13 @@ const thoughtController = {
         Thoughts.findOneAndUpdate(
             { _id: params.thoughtId },
             { $push: {reactions: body}},
-            { new: true, runValidators: true }
+            { new: true }
         )
         .then(dbThoughtData => {
             if(!dbThoughtData) {
                 return res.status(404).json({ message: 'No thought with this id!'});
             }
-            res.json(dbThoughtdata);
+            res.json(dbThoughtData);
         })
         .catch(err => res.status(400).json(err));
     },
@@ -117,7 +117,7 @@ const thoughtController = {
             { new: true}
         )
         .then(dbThoughtData => {
-            if(!dbThoughtdata) {
+            if(!dbThoughtData) {
                 return res.status(404).json({ message: 'No Thought with this id!'});
             }
             res.json(dbThoughtData);

@@ -1,5 +1,4 @@
 const { User } = require('../models');
-const { findOneAndUpdate } = require('../models/Thoughts');
 
 const userController = {
     // get all users
@@ -21,13 +20,10 @@ const userController = {
     getUserById ({ params }, res) {
         User.findOne({ _id: params.id})
         .populate({
-            path: 'comments',
+            path: 'thoughts',
             select: '-__v'
         })
-        .populate({
-            path: 'friends',
-            select: 'username'
-        })
+        .populate('friends')
         .select('-__v')
         .then(dbUserData => {
             if(!dbUserData) {
@@ -82,7 +78,7 @@ const userController = {
 
     //create friends
     addFriend ({ params }, res) {
-        findOneAndUpdate(
+        User.findOneAndUpdate(
             {_id: params.userId},
             { $push: { friends:  params.friendId} },
             { new: true, runvalidators: true }
@@ -100,7 +96,7 @@ const userController = {
     removeFriend({ params }, res) {
         User.findOneAndUpdate(
             { _id: params.userId },
-            { $pull: {friends: {_id: params.friendId} } },
+            { $pull: {friends: params.friendId } },
             { new: true }
         )
         .then(dbUserData => {
